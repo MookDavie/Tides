@@ -1,0 +1,56 @@
+name: Refresh tide forecast
+
+on:
+  schedule:
+    - cron: "36 10 * * *"   # daily, about 5:36am Eastern (6:36am during daylight time)
+  workflow_dispatch:         # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency: refresh-tides
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pandas and numpy
+        run: pip install pandas numpy
+
+      # If NOAA or the weather service fails, this step fails and nothing is published.
+      - name: Build forecast from NOAA and NWS
+        working-directory: kit
+        run: python forecast.py
+
+      - name: Build index.html
+        run: |
+          python - <<'PY'
+          f = open("kit/data/forecast.json").read()
+          t = open("kit/page_template.html").read()
+          head = '<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body>'
+          open("index.html", "w").write(head + "<script>window.FORECAST=" + f + ";</script>" + t + "</body></html>")
+          PY
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git commit -m "Refresh tide forecast $(date -u +%F)"
+          git push
+
+      # Makes sure GitHub Pages republishes after the bot's push.
+      - name: Request a Pages build
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"
