@@ -1,0 +1,407 @@
+<title>Charleston Tide Windows</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: almanac page — prime windows up top, a 14-day tide ledger, wind-on-water findings, schedule + method underneath */
+:root{
+  --bg:#f3f1e8; --surface:#fbfaf4; --ink:#16302e; --muted:#5d6b62; --line:#d9d6c6;
+  --water:#2f6f78; --water-soft:rgba(47,111,120,.14); --band:rgba(47,111,120,.18); --marsh:#a7811c; --free:rgba(167,129,28,.16);
+  --prime:#1f7a4d; --good:#7a8f2a; --night:rgba(22,48,46,.06); --up:#b0532f; --down:#2f5fa7;
+  --display:"Zilla Slab",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1b1b; --surface:#152525; --ink:#e3e8de; --muted:#93a39a; --line:#2a3b3a;
+  --water:#6fb6bf; --water-soft:rgba(111,182,191,.16); --band:rgba(111,182,191,.2); --marsh:#d6ad45; --free:rgba(214,173,69,.15);
+  --prime:#5cc48c; --good:#b7c95a; --night:rgba(0,0,0,.25); --up:#e2885f; --down:#7fa6e6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1b1b; --surface:#152525; --ink:#e3e8de; --muted:#93a39a; --line:#2a3b3a;
+  --water:#6fb6bf; --water-soft:rgba(111,182,191,.16); --band:rgba(111,182,191,.2); --marsh:#d6ad45; --free:rgba(214,173,69,.15);
+  --prime:#5cc48c; --good:#b7c95a; --night:rgba(0,0,0,.25); --up:#e2885f; --down:#7fa6e6; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px;display:grid;gap:36px}
+h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.1}
+h2{font-size:22px} h3{font-size:17px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:grid;gap:8px}
+header p{margin:0;color:var(--muted);max-width:64ch}
+.now{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.now .big{font-family:var(--display);font-size:26px;font-weight:700}
+.now .lbl{font-size:12px;color:var(--muted);display:block}
+.up{color:var(--up)} .down{color:var(--down)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end}
+label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+select,input[type=time]{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+button{font:inherit;font-size:13px;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 10px}
+button:hover{border-color:var(--water)}
+:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+section{display:grid;gap:14px}
+.sechead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.best{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.win{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:6px;text-align:left;min-width:0;align-content:start}
+.win .when{font-family:var(--display);font-size:19px;font-weight:700}
+.win .time{font-family:var(--mono);font-size:14px}
+.win .why{font-size:13px;color:var(--muted)}
+.win .adj{font-family:var(--mono);font-size:12px}
+.pill{justify-self:start;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;color:var(--bg)}
+.pill.prime{background:var(--prime)} .pill.good{background:var(--good)}
+.empty{color:var(--muted);font-size:14px;padding:16px;border:1px dashed var(--line);border-radius:8px}
+.ledger{display:grid;gap:2px;overflow-x:auto}
+.row{display:grid;grid-template-columns:96px minmax(520px,1fr);gap:12px;align-items:center;padding:4px 0;border:0;border-top:1px solid var(--line);border-radius:0;cursor:pointer;background:none;text-align:left;width:100%}
+.row:hover .day{color:var(--water)}
+.row.sel{background:var(--water-soft)}
+.day{font-family:var(--mono);font-size:13px;line-height:1.3}
+.day b{display:block;font-family:var(--body);font-size:14px}
+.day small{display:block;font-size:11px;color:var(--muted)}
+.row svg{width:100%;height:46px;display:block}
+.axis{display:grid;grid-template-columns:96px minmax(520px,1fr);gap:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.sw{width:14px;height:10px;border-radius:2px;display:inline-block}
+.sw.line{height:0;border-top:2px solid var(--water);border-radius:0}
+.sw.dash{height:0;border-top:2px dashed var(--muted);border-radius:0}
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:12px;min-width:0}
+.detail svg,.chart svg{width:100%;height:auto;display:block}
+.events{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:13px}
+.events b{font-family:var(--body);font-weight:600}
+.cols{display:grid;grid-template-columns:1.2fr 1fr;gap:32px}
+.cols>*{min-width:0}
+.prose{font-size:14px;display:grid;gap:10px;max-width:64ch}
+.prose p{margin:0}
+.k{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-weight:500;color:var(--muted)} th:first-child,td:first-child{text-align:left}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{border-top:2px solid var(--line);padding-top:8px}
+.stat .v{font-family:var(--display);font-size:22px;font-weight:700}
+.stat .d{font-size:12px;color:var(--muted)}
+.stat.hl{border-top-color:var(--water)}
+.sched{display:grid;gap:8px}
+.srow{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:start;padding-block:6px;border-top:1px solid var(--line)}
+.srow .dn{font-family:var(--mono);font-size:13px;padding-top:7px}
+.blocks{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.blk{display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--muted)}
+.blk button{padding:4px 8px}
+.off{font-size:13px;color:var(--muted);padding-top:6px}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:grid;gap:4px}
+footer a{color:var(--water)}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Charleston Harbor · NOAA station 8665530 · MLLW, feet</div>
+    <h1>When to fish, around your week</h1>
+    <p>NOAA's tide predictions, corrected for what the wind will do to the water, then scored for time around high and low tide and low light and filtered to the hours you're free.</p>
+  </header>
+
+  <div class="now" id="now"><span class="lbl">Loading forecast…</span></div>
+
+  <div class="controls">
+    <label class="f" for="turnhrs">Hours around high &amp; low
+      <select id="turnhrs">
+        <option value="1">±1 hour</option>
+        <option value="2" selected>±2 hours</option>
+        <option value="3">±3 hours</option>
+      </select>
+    </label>
+    <label class="f" for="minlen">Shortest trip worth it
+      <select id="minlen">
+        <option value="45">45 min</option>
+        <option value="60" selected>1 hour</option>
+        <option value="90">1½ hours</option>
+        <option value="120">2 hours</option>
+      </select>
+    </label>
+    <label class="f" for="maxwind">Wind I'll fish in
+      <select id="maxwind">
+        <option value="12">Up to 12 kt</option>
+        <option value="16" selected>Up to 16 kt</option>
+        <option value="20">Up to 20 kt</option>
+        <option value="99">Any wind</option>
+      </select>
+    </label>
+    <label class="chk" for="night"><input type="checkbox" id="night"> Include after-dark windows</label>
+  </div>
+
+  <section>
+    <div class="sechead"><h2>Windows: today + next 5 days</h2><span class="eyebrow" id="countNote"></span></div>
+    <div class="best" id="best"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Next 14 days</h2>
+      <div class="legend">
+        <span><i class="sw line"></i>Tide with wind</span>
+        <span><i class="sw dash"></i>NOAA prediction</span>
+        <span><i class="sw" style="background:var(--free)"></i>You're free</span>
+        <span><i class="sw" style="background:var(--prime)"></i>Prime</span>
+        <span><i class="sw" style="background:var(--good)"></i>Good</span>
+        <span><i class="sw" style="background:var(--night)"></i>Dark</span>
+      </div>
+    </div>
+    <div class="ledger" id="ledger"></div>
+    <div class="detail" id="detail"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>What the wind does to the water</h2><span class="eyebrow" id="modelNote"></span></div>
+    <div class="cols">
+      <div class="prose" id="findings"></div>
+      <div class="tblwrap"><table id="steady"></table></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="detail chart">
+      <div class="sechead"><h3 id="evTitle">Held-out test: a front blows the harbor out</h3><span class="eyebrow">Water above or below NOAA prediction, ft</span></div>
+      <div id="evChart"></div>
+      <div class="legend"><span><i class="sw" style="border-top:2px solid var(--ink);height:0;border-radius:0"></i>What happened</span><span><i class="sw line"></i>Model, from observed wind</span></div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section>
+      <div class="sechead"><h2>My free time</h2><button id="reset" type="button">Reset to default week</button></div>
+      <div class="sched" id="sched"></div>
+    </section>
+    <section>
+      <h2>How windows are scored</h2>
+      <div class="prose">
+        <p><span class="k">Tide timing</span><br>Windows center on the wind-adjusted high and low tides. Each 15-minute slot scores highest at the turn, eases off slightly out to the hours you picked on either side, then drops away over the next hour.</p>
+        <p><span class="k">Water level</span><br>Highs and lows are the wind-adjusted ones. Flood-tide fishing needs the adjusted high over about 5.8 ft to push water into the spartina; a blown-out low exposes more bars and mud.</p>
+        <p><span class="k">Light and wind</span><br>The 75 minutes around sunrise and sunset get a boost. Slots over your wind limit drop out, and dark hours drop unless you include them.</p>
+        <p><span class="k">Rating</span><br>Prime is a window averaging 75+, Good is 60+. Past the 7-day wind forecast, only the current sea-level offset is applied.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const TZ="America/New_York", LAT=32.781, LON=-79.925;
+let F=null, EV=[], HOUR=[], WIND=[], DATA_START=0, DATA_END=0;
+const P=t=>Date.parse(t.includes("T")?t:t.replace(" ","T")+"Z");
+
+function segIdx(ms){let lo=0,hi=EV.length-2;if(ms<EV[0].t||ms>=EV[EV.length-1].t)return -1;
+  while(lo<=hi){const m=(lo+hi)>>1;if(EV[m+1].t<=ms)lo=m+1;else if(EV[m].t>ms)hi=m-1;else return m;}return -1;}
+function predH(ms){const i=segIdx(ms);if(i<0)return null;const a=EV[i],b=EV[i+1];const p=(ms-a.t)/(b.t-a.t);return a.v+(b.v-a.v)*(1-Math.cos(Math.PI*p))/2;}
+function hourly(ms,key){if(!HOUR.length)return 0;const i=(ms-HOUR[0].ms)/36e5;if(i<=0)return HOUR[0][key];const j=Math.floor(i);if(j>=HOUR.length-1)return HOUR[HOUR.length-1][key];const f=i-j;return HOUR[j][key]*(1-f)+HOUR[j+1][key]*f;}
+const surge=ms=>hourly(ms,"surge"), band=ms=>hourly(ms,"band");
+const adjH=ms=>{const p=predH(ms);return p==null?null:p+surge(ms)};
+function windAt(ms){if(!WIND.length||ms<WIND[0].ms-36e5||ms>WIND[WIND.length-1].ms+36e5)return null;let best=WIND[0];for(const w of WIND){if(Math.abs(w.ms-ms)<Math.abs(best.ms-ms))best=w;}return best;}
+const CMP=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const compass=d=>CMP[Math.round(d/22.5)%16];
+
+const fmtParts=new Intl.DateTimeFormat("en-US",{timeZone:TZ,weekday:"short",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+const WD={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+function local(ms){const o={};for(const p of fmtParts.formatToParts(ms))o[p.type]=p.value;return{wd:WD[o.weekday],key:`${o.year}-${o.month}-${o.day}`,min:(+o.hour)*60+(+o.minute)};}
+const fTime=new Intl.DateTimeFormat("en-US",{timeZone:TZ,hour:"numeric",minute:"2-digit"});
+const fDay=new Intl.DateTimeFormat("en-US",{timeZone:TZ,weekday:"short",month:"short",day:"numeric"});
+const fDate=new Intl.DateTimeFormat("en-US",{timeZone:TZ,month:"short",day:"numeric"});
+const fDayLong=new Intl.DateTimeFormat("en-US",{timeZone:TZ,weekday:"long",month:"long",day:"numeric"});
+const t12=ms=>fTime.format(ms).replace(":00","").replace(" ","").toLowerCase();
+const ft=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(1)+" ft";
+function midnight(key){const[y,m,d]=key.split("-").map(Number);let g=Date.UTC(y,m-1,d,12,0);const l=local(g);return g-l.min*6e4;}
+
+function sun(key){const[y,m,d]=key.split("-").map(Number);const r=Math.PI/180;
+  const doy=(Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5;const g=2*Math.PI/365*(doy-1+.5);
+  const eq=229.18*(.000075+.001868*Math.cos(g)-.032077*Math.sin(g)-.014615*Math.cos(2*g)-.040849*Math.sin(2*g));
+  const dec=.006918-.399912*Math.cos(g)+.070257*Math.sin(g)-.006758*Math.cos(2*g)+.000907*Math.sin(2*g)-.002697*Math.cos(3*g)+.00148*Math.sin(3*g);
+  const ha=Math.acos(Math.cos(90.833*r)/(Math.cos(LAT*r)*Math.cos(dec))-Math.tan(LAT*r)*Math.tan(dec))/r;
+  const base=Date.UTC(y,m-1,d);return{rise:base+(720-4*(LON+ha)-eq)*6e4,set:base+(720-4*(LON-ha)-eq)*6e4};}
+
+// ---- schedule ----
+const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const EXAMPLE={0:[["06:00","19:30"]],1:[["12:00","19:30"]],2:[["12:00","19:30"]],3:[["12:00","19:30"]],4:[["12:00","19:30"]],5:[["12:00","19:30"]],6:[["06:00","19:30"]]};
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let sched=store.get("ctw-sched-v2")||structuredClone(EXAMPLE);
+const prefs=Object.assign({turnhrs:2,minlen:60,night:false,maxwind:16},store.get("ctw-prefs")||{});
+const toMin=s=>{const[h,m]=s.split(":").map(Number);return h*60+m};
+const isFree=lp=>(sched[lp.wd]||[]).some(([a,b])=>lp.min>=toMin(a)&&lp.min<toMin(b));
+
+// ---- scoring ----
+const STEP=15*6e4;
+function scoreAt(ms,sunToday){
+  const i=segIdx(ms);if(i<0)return null;
+  const a=EV[i],b=EV[i+1];const p=(ms-a.t)/(b.t-a.t);const rising=a.type==="L";
+  const av=a.v+surge(a.t), bv=b.v+surge(b.t); const range=Math.abs(bv-av);
+  const toA=(ms-a.t)/36e5, toB=(b.t-ms)/36e5; const turn=toA<=toB?a:b; const d=Math.min(toA,toB); const N=prefs.turnhrs;
+  const cur=d<=N?1-.15*d/N:Math.max(0,.85-(d-N)*.85);
+  const rangeF=.7+.3*Math.min(1,range/6.4);
+  let light=1;const near=Math.min(Math.abs(ms-sunToday.rise),Math.abs(ms-sunToday.set));
+  const dark=ms<sunToday.rise-30*6e4||ms>sunToday.set+30*6e4;
+  if(near<=75*6e4)light=1.25;else if(dark)light=.55;
+  const w=windAt(ms);const windy=w&&w.kt>prefs.maxwind;
+  return{s:Math.min(100,Math.round(cur*rangeF*light*80+(cur>.5?8:0))),dark,windy,w,rising,a,b,turn};
+}
+
+function computeDays(){
+  const start=Math.max(Date.now(),DATA_START);const days=new Map();
+  for(let ms=Math.ceil(start/STEP)*STEP;ms<DATA_END;ms+=STEP){
+    const lp=local(ms);if(!days.has(lp.key))days.set(lp.key,{key:lp.key,sun:sun(lp.key),slots:[],wins:[]});
+    const d=days.get(lp.key);const sc=scoreAt(ms,d.sun);if(!sc)continue;
+    d.slots.push({ms,free:isFree(lp)&&(prefs.night||!sc.dark)&&!sc.windy,...sc});
+  }
+  const wins=[];
+  for(const d of days.values()){
+    let run=[];
+    const flush=()=>{if(run.length*15>=prefs.minlen){const avg=run.reduce((x,y)=>x+y.s,0)/run.length;
+      if(avg>=60){const w={day:d,start:run[0].ms,end:run[run.length-1].ms+STEP,score:Math.round(avg),slots:run};wins.push(w);d.wins.push(w);}}run=[];};
+    for(const s of d.slots){if(s.free&&s.s>=52)run.push(s);else flush();}flush();
+  }
+  return{days:[...days.values()],wins};
+}
+
+function describe(w){
+  const mid=w.slots[Math.floor(w.slots.length/2)];const turn=mid.turn;
+  const s=w.day.sun;const ll=w.start<=s.rise+75*6e4&&w.end>=s.rise-75*6e4?" · sunrise":(w.start<=s.set+75*6e4&&w.end>=s.set-75*6e4?" · sunset":"");
+  return `Around ${turn.type==="H"?"high":"low"} tide at ${t12(turn.t)}${ll}`;
+}
+function adjLine(w){
+  const turn=w.slots[Math.floor(w.slots.length/2)].turn;const sg=surge(turn.t);const wd=w.slots[Math.floor(w.slots.length/2)].w;
+  const lvl=`${turn.type==="H"?"High":"Low"} ${turn.v.toFixed(1)} → ${(turn.v+sg).toFixed(1)} ft`;
+  return wd?`${lvl} with wind · ${compass(wd.dir)} ${wd.kt} kt`:`${lvl} with sea-level offset · past wind forecast`;
+}
+
+// ---- render ----
+const $=id=>document.getElementById(id);
+let selKey=null;
+function render(){
+  const{days,wins}=computeDays();
+  // every qualifying window from today through the next 5 days, in date order (no top-N cut)
+  const near=new Set(days.slice(0,6).map(d=>d.key));
+  const top=wins.filter(w=>near.has(w.day.key)).sort((a,b)=>a.start-b.start);
+  const lastNear=days.slice(0,6).pop();
+  $("countNote").textContent=`${top.length} window${top.length===1?"":"s"} today–${lastNear?fDate.format(midnight(lastNear.key)+12*36e5):""} · ${wins.length} through ${fDate.format(DATA_END)}`;
+  $("best").innerHTML=top.length?top.map(w=>`
+    <button class="win" type="button" data-key="${w.day.key}">
+      <span class="pill ${w.score>=75?"prime":"good"}">${w.score>=75?"Prime":"Good"} · ${w.score}</span>
+      <span class="when">${fDay.format(w.start)}</span>
+      <span class="time">${t12(w.start)} – ${t12(w.end)}</span>
+      <span class="why">${describe(w)}</span>
+      <span class="adj">${adjLine(w)}</span>
+    </button>`).join(""):`<div class="empty">No windows score 60+ inside your free time and wind limit between today and 5 days from now. Try a shorter minimum trip, a higher wind limit, or add free blocks below.</div>`;
+  const show=days.slice(0,14);
+  if(!selKey||!show.some(d=>d.key===selKey))selKey=(top[0]&&top[0].day.key)||show[0]?.key;
+  $("ledger").innerHTML=`<div class="axis"><span></span><div><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div></div>`+
+    show.map(d=>{const m0=midnight(d.key);const ws=WIND.filter(w=>w.ms>=m0+6*36e5&&w.ms<m0+20*36e5);const mx=ws.length?Math.max(...ws.map(w=>w.kt)):null;
+      const sg=surge(m0+12*36e5);const lab=fDay.format(m0).split(", ");
+      return `<button class="row${d.key===selKey?" sel":""}" type="button" data-key="${d.key}" aria-label="${fDayLong.format(m0)}">
+      <span class="day"><b>${lab[0]}</b>${lab[1]}<small class="${sg>=0?"up":"down"}">${ft(sg)}${mx!=null?` · ${mx} kt`:""}</small></span>
+      ${strip(d,600,46,false)}</button>`}).join("");
+  renderDetail(days.find(d=>d.key===selKey));
+  document.querySelectorAll("[data-key]").forEach(el=>el.onclick=()=>{selKey=el.dataset.key;render();if(el.classList.contains("win"))$("detail").scrollIntoView({behavior:"smooth",block:"nearest"});});
+}
+
+function strip(d,W,H,big){
+  const m0=midnight(d.key),m1=m0+864e5,span=m1-m0;
+  const x=ms=>((ms-m0)/span*W).toFixed(1);
+  const top=big?26:0, lo=-1.5,hi=8; const y=v=>(H-4-(v-lo)/(hi-lo)*(H-8-top)).toFixed(1);
+  let o=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="${big?"xMidYMid meet":"none"}" role="img" aria-label="Tide curve">`;
+  o+=`<rect x="0" y="0" width="${x(d.sun.rise)}" height="${H}" fill="var(--night)"/><rect x="${x(d.sun.set)}" y="0" width="${Math.max(0,W-x(d.sun.set)).toFixed(1)}" height="${H}" fill="var(--night)"/>`;
+  const wd=local(m0+12*36e5).wd;
+  for(const[a,b]of(sched[wd]||[]))o+=`<rect x="${(toMin(a)/1440*W).toFixed(1)}" y="0" width="${((toMin(b)-toMin(a))/1440*W).toFixed(1)}" height="${H}" fill="var(--free)"/>`;
+  for(const w of d.wins)o+=`<rect x="${x(w.start)}" y="${H-(big?8:5)}" width="${(x(w.end)-x(w.start)).toFixed(1)}" height="${big?8:5}" fill="var(${w.score>=75?"--prime":"--good"})"/>`;
+  const P1=[],P2=[],BU=[],BL=[];
+  for(let ms=m0;ms<=m1;ms+=20*6e4){const p=predH(ms);if(p==null)continue;const s=surge(ms),bd=band(ms);
+    P1.push(`${x(ms)},${y(p)}`);P2.push(`${x(ms)},${y(p+s)}`);BU.push(`${x(ms)},${y(p+s+bd)}`);BL.unshift(`${x(ms)},${y(p+s-bd)}`);}
+  if(P2.length){
+    if(big)o+=`<polygon points="${BU.join(" ")} ${BL.join(" ")}" fill="var(--band)"/>`;
+    else o+=`<polygon points="${P2[0].split(",")[0]},${H} ${P2.join(" ")} ${P2[P2.length-1].split(",")[0]},${H}" fill="var(--water-soft)"/>`;
+    o+=`<polyline points="${P1.join(" ")}" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>`;
+    o+=`<polyline points="${P2.join(" ")}" fill="none" stroke="var(--water)" stroke-width="${big?2.2:1.6}" vector-effect="non-scaling-stroke"/>`;
+  }
+  if(big){
+    o+=`<line x1="0" x2="${W}" y1="${y(5.8)}" y2="${y(5.8)}" stroke="var(--marsh)" stroke-dasharray="2 4"/><text x="${W-4}" y="${+y(5.8)-4}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--marsh)">5.8′ marsh floods</text>`;
+    o+=`<line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)"/><text x="${W-4}" y="${+y(0)-4}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--muted)">0′ MLLW</text>`;
+    for(const e of EV.filter(e=>e.t>=m0&&e.t<m1)){const v=e.v+surge(e.t);const ex=+x(e.t),ey=+y(v);
+      o+=`<circle cx="${ex}" cy="${ey}" r="3.5" fill="var(--water)"/><text x="${Math.min(W-70,Math.max(4,ex-28))}" y="${e.type==="H"?ey-10:ey+18}" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ink)">${e.type} ${v.toFixed(1)}′</text>`;}
+    for(let h=0;h<24;h+=3){const ms=m0+h*36e5+90*6e4;const w=windAt(ms);const cx=+x(ms);
+      if(w){const rot=(w.dir+180)%360;o+=`<g transform="translate(${cx},12) rotate(${rot})"><line x1="0" y1="6" x2="0" y2="-6" stroke="var(--ink)" stroke-width="1.5"/><path d="M-3.5,-2 L0,-7 L3.5,-2 Z" fill="var(--ink)"/></g><text x="${cx+8}" y="16" font-family="IBM Plex Mono,monospace" font-size="11" fill="${w.kt>prefs.maxwind?"var(--up)":"var(--muted)"}">${w.kt}</text>`;}}
+    for(const h of[0,6,12,18])o+=`<text x="${(h/24*W+3).toFixed(1)}" y="${H-12}" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--muted)">${["12a","6a","12p","6p"][h/6]}</text>`;
+  }
+  return o+"</svg>";
+}
+
+function renderDetail(d){
+  if(!d){$("detail").innerHTML="";return;}
+  const m0=midnight(d.key);const ev=EV.filter(e=>e.t>=m0&&e.t<m0+864e5);const inFc=windAt(m0+12*36e5);
+  $("detail").innerHTML=`<div class="sechead"><h2>${fDayLong.format(m0)}</h2>
+    <span class="eyebrow">Sunrise ${t12(d.sun.rise)} · Sunset ${t12(d.sun.set)} · arrows show where the wind blows, kt</span></div>
+    ${strip(d,900,220,true)}
+    <div class="events">${ev.map(e=>{const s=surge(e.t);return`<span><b>${e.type==="H"?"High":"Low"}</b> ${t12(e.t)} · ${(e.v+s).toFixed(1)} ft <span class="${s>=0?"up":"down"}">(${ft(s)} vs NOAA ${e.v.toFixed(1)})</span></span>`}).join("")}</div>
+    <div class="events">${d.wins.length?d.wins.map(w=>`<span><b>${w.score>=75?"Prime":"Good"} ${w.score}</b> ${t12(w.start)}–${t12(w.end)}</span>`).join(""):`<span style="color:var(--muted)">No scored windows in your free time this day.</span>`}</div>
+    <div class="k">${inFc?`Shaded band is the likely range (about ±${band(m0+12*36e5).toFixed(1)} ft).`:"Past the 7-day wind forecast: only the current sea-level offset is applied, so treat this day's levels loosely."}</div>`;
+}
+
+function renderModel(){
+  const M=F.model, m=M.metrics;
+  const nowOff=F.hourly[0].surge, w=F.wind_obs_now;
+  $("now").innerHTML=`
+    <div><span class="lbl">Water vs. NOAA prediction now</span><span class="big ${nowOff>=0?"up":"down"}">${ft(nowOff)}</span></div>
+    <div><span class="lbl">Wind at the harbor tide station</span><span class="big">${compass(w.dir)} ${Math.round(w.kt)} kt</span></div>
+    <div><span class="lbl">30-day sea-level offset</span><span class="big">${ft(F.base_offset)}</span></div>
+    <div><span class="lbl">Forecast built</span><span class="big mono" style="font-size:18px">${fDay.format(P(F.generated))}, ${t12(P(F.generated))}</span></div>`;
+  $("modelNote").textContent=`fit on ${fDate.format(P("2024-10-16T00:00Z"))} 2024 – ${fDate.format(P(M.train_end+"T00:00Z"))} 2026, tested on the 7 months after`;
+  $("findings").innerHTML=`
+    <p><span class="k">Charleston runs high</span><br>Over the last two years the harbor averaged ${ft(M.resid_mean_2yr)} above NOAA's predictions, and the 30-day average is ${ft(F.base_offset)} right now. NOAA's numbers are tied to a 1983–2001 sea level, and the ocean has risen since. Fall is usually the highest stretch of the year.</p>
+    <p><span class="k">East wind fills the harbor, west wind empties it</span><br>The effect builds over about a day. A steady 15 kt east wind adds about ${M.steady["15kt_E"].toFixed(1)} ft; a 15 kt west wind takes about ${Math.abs(M.steady["15kt_W"]).toFixed(1)} ft out. North and south winds barely move it.</p>
+    <p><span class="k">Offsets linger</span><br>Whatever the wind doesn't explain (offshore swell, Gulf Stream shifts) fades over about ${Math.round(M.tau/24)} days, so today's offset carries into the week.</p>`;
+  const dirs=["N","NE","E","SE","S","SW","W","NW"],sp=[10,15,20,25];
+  $("steady").innerHTML=`<caption class="k" style="text-align:left;padding-bottom:6px">Change after a day of steady wind, ft</caption><tr><th>From</th>${sp.map(s=>`<th>${s} kt</th>`).join("")}</tr>`+
+    dirs.map(d=>`<tr><td>${d}</td>${sp.map(s=>{const v=M.steady[`${s}kt_${d}`];return`<td class="${v>.15?"up":v<-.15?"down":""}">${v>=0?"+":"−"}${Math.abs(v).toFixed(1)}</td>`}).join("")}</tr>`).join("");
+  $("stats").innerHTML=[
+    ["NOAA prediction alone",m.noaa_prediction_only,"typical miss, held-out months"],
+    ["+ 30-day offset",m.plus_30day_offset,"sea-level correction only"],
+    ["+ wind and pressure",m.plus_wind_pressure,"using wind that actually blew"],
+    ["Full model, 1 day out",m.full_model_24h_ahead,"what this page uses",true],
+    ["Full model, 5 days out",m.full_model_120h_ahead,"plus wind-forecast error"]
+  ].map(([l,v,d,h])=>`<div class="stat${h?" hl":""}"><div class="k">${l}</div><div class="v">±${v.toFixed(2)} ft</div><div class="d">${d}</div></div>`).join("");
+  if(F.event){const E=F.event.map(e=>({ms:P(e.t),r:e.r,m:e.m}));const Wd=900,Hd=200,pad=34;
+    const t0=E[0].ms,t1=E[E.length-1].ms;const vs=E.flatMap(e=>[e.r,e.m]);const lo=Math.floor(Math.min(...vs)*2)/2,hi=Math.ceil(Math.max(...vs)*2)/2;
+    const X=ms=>(pad+(ms-t0)/(t1-t0)*(Wd-pad-8)).toFixed(1),Y=v=>(10+(hi-v)/(hi-lo)*(Hd-36)).toFixed(1);
+    let s=`<svg viewBox="0 0 ${Wd} ${Hd}" role="img" aria-label="Observed versus modeled water offset">`;
+    for(let v=lo;v<=hi+1e-9;v+=.5)s+=`<line x1="${pad}" x2="${Wd-8}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" ${v===0?"":'stroke-dasharray="2 3"'}/><text x="${pad-6}" y="${+Y(v)+4}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--muted)">${v.toFixed(1)}</text>`;
+    for(let ms=Math.ceil(t0/864e5)*864e5;ms<t1;ms+=2*864e5)s+=`<text x="${X(ms)}" y="${Hd-6}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--muted)">${fDate.format(ms)}</text>`;
+    s+=`<polyline points="${E.map(e=>`${X(e.ms)},${Y(e.m)}`).join(" ")}" fill="none" stroke="var(--water)" stroke-width="2.2"/>`;
+    s+=`<polyline points="${E.map(e=>`${X(e.ms)},${Y(e.r)}`).join(" ")}" fill="none" stroke="var(--ink)" stroke-width="1.4"/>`;
+    const pk=E.reduce((a,b)=>Math.abs(b.r)>Math.abs(a.r)?b:a);
+    s+=`<circle cx="${X(pk.ms)}" cy="${Y(pk.r)}" r="4" fill="var(--ink)"/><text x="${+X(pk.ms)+8}" y="${+Y(pk.r)+4}" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ink)">${ft(pk.r)} on ${fDate.format(pk.ms)}</text>`;
+    $("evChart").innerHTML=s+"</svg>";
+    $("evTitle").textContent=`Held-out test: ${fDate.format(pk.ms)} 2026, when a ${pk.r<0?"west wind emptied":"east wind filled"} the harbor`;}
+  $("foot").innerHTML=`<span>Tide predictions, observed water level, wind and pressure from <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8665530" target="_blank" rel="noopener">NOAA Tides &amp; Currents, Charleston (8665530)</a>. Wind forecast from the <a href="https://forecast.weather.gov/MapClick.php?lat=32.781&lon=-79.925" target="_blank" rel="noopener">National Weather Service</a> through ${fDay.format(P(F.wind_fc_end))}.</span><span>Tide data runs ${fDate.format(DATA_START)} – ${fDate.format(DATA_END)}. Wind and rain can change fast; check the marine forecast before you launch.</span>`;
+}
+
+function renderSched(){
+  const order=[1,2,3,4,5,6,0];
+  $("sched").innerHTML=order.map(wd=>`<div class="srow"><span class="dn">${DAYS[wd]}</span><div class="blocks">
+    ${(sched[wd]||[]).map(([a,b],i)=>`<span class="blk"><input type="time" id="s${wd}-${i}a" value="${a}" data-wd="${wd}" data-i="${i}" data-e="0" aria-label="${DAYS[wd]} start">–<input type="time" id="s${wd}-${i}b" value="${b}" data-wd="${wd}" data-i="${i}" data-e="1" aria-label="${DAYS[wd]} end"><button type="button" data-del="${wd}-${i}" aria-label="Remove block">✕</button></span>`).join("")||`<span class="off">Not free</span>`}
+    <button type="button" data-add="${wd}">+ Add time</button></div></div>`).join("");
+  document.querySelectorAll("#sched input[type=time]").forEach(inp=>inp.onchange=()=>{const b=sched[inp.dataset.wd][inp.dataset.i];b[+inp.dataset.e]=inp.value||b[+inp.dataset.e];save();});
+  document.querySelectorAll("[data-del]").forEach(bt=>bt.onclick=()=>{const[wd,i]=bt.dataset.del.split("-");sched[wd].splice(+i,1);save(true);});
+  document.querySelectorAll("[data-add]").forEach(bt=>bt.onclick=()=>{const wd=bt.dataset.add;(sched[wd]=sched[wd]||[]).push(["17:00","19:00"]);save(true);});
+}
+function save(re){store.set("ctw-sched-v2",sched);if(re)renderSched();if(F)render();}
+const setPref=(k,v)=>{prefs[k]=v;store.set("ctw-prefs",prefs);if(F)render();};
+$("turnhrs").value=String(prefs.turnhrs);$("minlen").value=String(prefs.minlen);$("night").checked=prefs.night;$("maxwind").value=String(prefs.maxwind);
+$("turnhrs").onchange=e=>setPref("turnhrs",+e.target.value);
+$("minlen").onchange=e=>setPref("minlen",+e.target.value);
+$("maxwind").onchange=e=>setPref("maxwind",+e.target.value);
+$("night").onchange=e=>setPref("night",e.target.checked);
+$("reset").onclick=()=>{sched=structuredClone(EXAMPLE);save(true);};
+renderSched();
+
+(window.FORECAST?Promise.resolve(window.FORECAST):fetch("forecast.json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})).then(j=>{
+  F=j;EV=j.hilo.map(e=>({t:P(e.t),v:e.v,type:e.type}));
+  HOUR=j.hourly.map(h=>({ms:P(h.t),surge:h.surge,band:h.band}));
+  WIND=j.wind.map(w=>({ms:P(w.t),kt:Math.round(w.kt),dir:w.dir})).filter(w=>w.dir!=null);
+  DATA_START=EV[0].t;DATA_END=EV[EV.length-1].t;
+  renderModel();render();
+}).catch(e=>{$("now").innerHTML=`<span class="lbl">The forecast data didn't load (${e.message}). Reload the page; if it keeps failing, ask Claude to republish the forecast.</span>`;});
+</script>
